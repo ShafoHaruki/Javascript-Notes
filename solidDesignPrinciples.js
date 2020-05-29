@@ -236,6 +236,7 @@ makeSwimmingBirdSwim(penguin)
 /*
 'I' stands for Interface segregation
 There's no interface in javascript, but we can implement it in classes.
+https://www.youtube.com/watch?v=JVWZR23B_iE
 */
 
 //NOT SO GOOD EXAMPLE
@@ -300,3 +301,67 @@ character.attack(wall)
 //wall has 197 health remaining.
 
 //BETTER EXAMPLE
+//Split it into components, which is like smaller interfaces
+
+class Entity{
+    constructor(name){
+        this.name = name
+    }
+}
+
+const mover = {
+    move(){
+        console.log(`${this.name} moved.`)
+    }
+}
+
+const attacker = {
+    attack(targetEntity){
+        console.log(`${this.name} attacked ${targetEntity.name} for ${this.attackDamage} damage.`)
+        targetEntity.takeDamage(this.attackDamage)
+    }
+}
+
+const hasHealth = {
+    takeDamage(amount){
+        this.health -= amount
+        console.log(`${this.name} has ${this.health} health remaining`)
+    }
+}
+
+class Character extends Entity{
+    constructor(name, attackDamage, health){
+        super(name)
+        this.attackDamage = attackDamage
+        this.health = health
+    }
+}
+
+//Assignment of different components to class
+Object.assign(Character.prototype, mover, attacker, hasHealth)
+
+class Wall extends Entity{
+    constructor(name, health){
+        super(name)
+        this.health = health
+    }
+}
+
+Object.assign(Wall.prototype, hasHealth)
+
+class Turret extends Entity{
+    constructor(name, attackDamage){
+        super(name)
+        this.attackDamage = attackDamage
+    }
+}
+
+Object.assign(Turret.prototype, attacker)
+
+const turret = new Turret('turret', 5)
+const character = new Character('character', 3, 10)
+const wall = new Wall('wall', 200)
+
+turret.attack(character)
+character.move()
+character.attack(wall)
