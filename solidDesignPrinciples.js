@@ -236,7 +236,6 @@ makeSwimmingBirdSwim(penguin)
 /*
 'I' stands for Interface segregation
 There's no interface in javascript, but we can implement it in classes.
-https://www.youtube.com/watch?v=JVWZR23B_iE
 */
 
 //NOT SO GOOD EXAMPLE
@@ -365,3 +364,109 @@ const wall = new Wall('wall', 200)
 turret.attack(character)
 character.move()
 character.attack(wall)
+
+/*
+'D' stands for Dependency Inversion Priciple.
+High level modules should not depend on low level modules; both should depend on abstractions. Abstractions should not depend on details.
+
+BELOW EXAMPLE IS A STORE INITIALLY USING CREDIT CARD X, BUT THAN DECIDED TO SWITCH TO CREDIT CARD Y.
+*/
+
+class Store {
+    constructor(user){
+        this.creditCardX = new CreditCardX(user)
+    }
+    purchaseBike(quantity){
+        this.creditCardX.makePayment(200 * quantity * 100)
+    }
+    purchaseHelmet(quantity){
+        this.creditCardX.makePayment(15 * quantity * 100)
+    }
+}
+
+//treat below as a CreditCardX API
+class CreditCardX{
+    constructor(user){
+        this.user = user
+    }
+    makePayment(amountInCents){
+        console.log(`${this.user} made a payment of $${amountInCents / 100} using Credit Card X`)
+    }
+}
+
+const store = new Store('Store Best')
+store.purchaseBike(2) //outputs Store Best make a payment of $400 using Credit Card X
+store.purchaseHelmet(2) //outputs Store Best make a payment of $30 using Credit Card X
+
+
+/*
+class CreditCardY {
+    makePayment(user,amountInDollars){
+        console.log(`${user} made a payment of $${amountInDollars} using Credit Card Y`)
+    }
+}
+
+IF THE STORE DECIDED TO ACCEPT A NEW PAYMENT SYSTEM CREDIT CARD Y, WE'LL HAVE TO INSERT IT TO THE CONSTRUCTOR OTHER PLACES EG. PURCHASEBIKE, AND THAT CAN GET MESSY, SO BELOW IS A BETTER EXAMPLE BY CREATING A 'WRAPPER' THAT CAN WRAP AROUND BOTH CREDIT CARD X AND Y, WITH THE EXACT SAME METHOD/FUNCTION/INTERFACE
+*/
+
+//BETTER EXAMPLE
+
+class Store{
+    constructor(paymentProcessor){
+        this.paymentProcessor = paymentProcessor
+    }
+    purchaseBike(quantity){
+        this.paymentProcessor.pay(200 * quantity)
+    }
+    purchaseHelmet(quantity){
+        this.paymentProcessor.pay(15 * quantity)
+    }
+}
+
+class CreditCardYoloPaymentProcessor{
+    constructor(user){
+        this.creditCardYolo = new CreditCardYolo(user)
+    }
+    pay(amountInDollars){
+        this.creditCardYolo.makePayment(amountInDollars * 100)
+    }
+}
+
+class CreditCardYolo{
+    constructor(user){
+        this.user = user
+    }
+    makePayment(amountInCents){
+        console.log(`${this.user} made a payment of $${amountInCents / 100} with Credit Card Yolo`)
+    }
+}
+
+const store = new Store(new CreditCardYoloPaymentProcessor('Sally'))
+store.purchaseHelmet(2)
+//outputs Sally made a payment of $30 with Credit Card Yolo
+store.purchaseBike(2)
+//outputs Sally made a payment of $400 with Credit Card Yolo
+
+//SO, IF WE WANT TO PAY USING A NEW CREDIT CARD Z, WE DO THIS BELOW EASILY
+
+class CreditCardZuluPaymentProcessor{
+    constructor(user){
+        this.creditCardZulu = new CreditCardZulu(user)
+    }
+    pay(amountInDollars){
+        this.creditCardZulu.makePayment(amountInDollars * 100)
+    }
+}
+
+class CreditCardZulu{
+    constructor(user){
+        this.user = user
+    }
+    makePayment(amountInCents){
+        console.log(`${this.user} made a payment of $${amountInCents / 100} with Credit Card Zulu`)
+    }
+}
+
+const store2 = new Store(new CreditCardZuluPaymentProcessor('John'))
+store2.purchaseHelmet(4) //outputs John made a payment of $60 with Credit Card Zulu
+store2.purchaseBike(3) //outputs John made a payment of $600 with Credit Card Zulu
